@@ -6,107 +6,135 @@
 <title>陸上 記録ボード</title>
 <style>
   :root {
-    --bg: #f4f5f7;
     --card: #ffffff;
-    --text: #1d2330;
-    --muted: #6b7280;
-    --line: #e5e7eb;
-    --accent: #d9480f;
-    --accent-weak: #fff1e8;
-    --gold: #b7791f;
+    --field: #fff5f5;
+    --text: #1a0a0c;
+    --muted: #7a5a5e;
+    --line: #ffd6d9;
+    --accent: #e60012;
+    --accent-dark: #8a000b;
+    --accent-weak: #ffe3e5;
+    --gold: #ffb800;
     --danger: #c92a2a;
-    --radius: 14px;
+    --radius: 18px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #12151b;
-      --card: #1c2029;
-      --text: #e8eaef;
-      --muted: #9aa1ad;
-      --line: #2d3340;
-      --accent: #ff7a3d;
-      --accent-weak: #3a2418;
-      --gold: #f2c14e;
+      --card: #1f0d10;
+      --field: #2b1216;
+      --text: #fff0f1;
+      --muted: #d9a5ab;
+      --line: #4a1d23;
+      --accent: #ff1f35;
+      --accent-dark: #3d0006;
+      --accent-weak: #4a121a;
       --danger: #ff6b6b;
     }
   }
-  /* テーマカラー（未指定時はオレンジ） */
-  :root[data-accent="blue"]   { --accent: #1c7ed6; --accent-weak: #e7f5ff; }
-  :root[data-accent="green"]  { --accent: #2b8a3e; --accent-weak: #ebfbee; }
-  :root[data-accent="purple"] { --accent: #7048e8; --accent-weak: #f3f0ff; }
-  :root[data-accent="pink"]   { --accent: #d6336c; --accent-weak: #fff0f6; }
-  :root[data-accent="navy"]   { --accent: #364fc7; --accent-weak: #edf2ff; }
+  /* テーマカラー（未指定時はレッド） */
+  :root[data-accent="blue"]   { --accent: #1c7ed6; --accent-dark: #0b3d6e; --accent-weak: #e7f5ff; --field: #f3f9ff; --line: #d0e7fb; }
+  :root[data-accent="green"]  { --accent: #2b8a3e; --accent-dark: #0f4019; --accent-weak: #ebfbee; --field: #f4fcf5; --line: #d3f0d9; }
+  :root[data-accent="purple"] { --accent: #7048e8; --accent-dark: #321a85; --accent-weak: #f3f0ff; --field: #f8f6ff; --line: #e2dafc; }
+  :root[data-accent="pink"]   { --accent: #d6336c; --accent-dark: #6e0f31; --accent-weak: #fff0f6; --field: #fff6fa; --line: #fbd5e4; }
+  :root[data-accent="navy"]   { --accent: #364fc7; --accent-dark: #141f5c; --accent-weak: #edf2ff; --field: #f5f8ff; --line: #d6e0fb; }
   @media (prefers-color-scheme: dark) {
-    :root[data-accent="blue"]   { --accent: #339af0; --accent-weak: #162a3d; }
-    :root[data-accent="green"]  { --accent: #40c057; --accent-weak: #16301d; }
-    :root[data-accent="purple"] { --accent: #9775fa; --accent-weak: #261f3d; }
-    :root[data-accent="pink"]   { --accent: #f06595; --accent-weak: #3a1a27; }
-    :root[data-accent="navy"]   { --accent: #5c7cfa; --accent-weak: #1b2240; }
+    :root[data-accent] { --card: #16191f; --field: #1f232b; --line: #2d3340; --text: #eef0f4; --muted: #9aa1ad; }
+    :root[data-accent="red"] { --card: #1f0d10; --field: #2b1216; --line: #4a1d23; --text: #fff0f1; --muted: #d9a5ab; }
+    :root[data-accent="blue"]   { --accent: #339af0; --accent-dark: #061a2e; --accent-weak: #162a3d; }
+    :root[data-accent="green"]  { --accent: #40c057; --accent-dark: #06180b; --accent-weak: #16301d; }
+    :root[data-accent="purple"] { --accent: #9775fa; --accent-dark: #140a33; --accent-weak: #261f3d; }
+    :root[data-accent="pink"]   { --accent: #f06595; --accent-dark: #2b0614; --accent-weak: #3a1a27; }
+    :root[data-accent="navy"]   { --accent: #5c7cfa; --accent-dark: #080d2b; --accent-weak: #1b2240; }
   }
   * { box-sizing: border-box; }
+  html { background: var(--accent-dark); }
   body {
     margin: 0;
-    background: var(--bg);
+    min-height: 100vh;
+    background:
+      repeating-linear-gradient(-55deg, rgba(255,255,255,.06) 0 18px, transparent 18px 44px),
+      linear-gradient(160deg, var(--accent) 0%, var(--accent) 35%, var(--accent-dark) 100%);
+    background-attachment: fixed;
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", sans-serif;
     line-height: 1.5;
     -webkit-text-size-adjust: 100%;
   }
   header {
-    background: var(--accent);
     color: #fff;
-    padding: 18px 16px 16px;
+    padding: 28px 16px 8px;
+    max-width: 640px; margin: 0 auto;
   }
-  header h1 { margin: 0; font-size: 1.35rem; letter-spacing: .02em; }
-  header p { margin: 2px 0 0; font-size: .85rem; opacity: .9; }
-  .themes { display: flex; gap: 10px; margin-top: 12px; align-items: center; }
-  .themes span { font-size: .8rem; opacity: .9; margin-right: 2px; }
+  header h1 {
+    margin: 0;
+    font-size: 2rem; font-weight: 900; font-style: italic;
+    letter-spacing: .02em; line-height: 1.15;
+    text-shadow: 3px 3px 0 rgba(0,0,0,.25);
+  }
+  header p {
+    display: inline-block;
+    margin: 10px 0 0; padding: 3px 10px;
+    font-size: .8rem; font-weight: 700;
+    background: rgba(0,0,0,.22); border-radius: 10px;
+  }
+  .themes { display: flex; gap: 10px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+  .themes span { font-size: .8rem; font-weight: 700; margin-right: 2px; }
   .swatch {
-    width: 28px; height: 28px; border-radius: 50%;
+    width: 30px; height: 30px; border-radius: 50%;
     background: var(--c);
-    border: 2px solid rgba(255,255,255,.85);
+    border: 3px solid #fff;
     padding: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
   }
-  .swatch[aria-pressed="true"] { box-shadow: 0 0 0 3px #fff; transform: scale(1.1); }
-  .swatch[aria-pressed="true"]::after { content: "✓"; color: #fff; font-weight: 700; font-size: .9rem; }
+  .swatch[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--accent-dark), 0 0 0 6px #fff; transform: scale(1.1); }
+  .swatch[aria-pressed="true"]::after { content: "✓"; color: #fff; font-weight: 900; font-size: .9rem; }
   main { max-width: 640px; margin: 0 auto; padding: 16px; }
   section {
     background: var(--card);
     border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    padding: 0 16px 16px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 0 rgba(0,0,0,.18), 0 16px 32px rgba(0,0,0,.25);
   }
-  h2 { font-size: 1.05rem; margin: 0 0 12px; }
-  label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
+  h2 {
+    margin: 0 -16px 16px; padding: 12px 16px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+    color: #fff;
+    font-size: 1.1rem; font-weight: 900; font-style: italic; letter-spacing: .04em;
+  }
+  h2 #count { color: rgba(255,255,255,.8) !important; }
+  label { display: block; font-size: .85rem; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
   input {
     width: 100%;
     font-size: 16px; /* iOSのズーム防止 */
     padding: 12px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--bg);
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    background: var(--field);
     color: var(--text);
+    font-weight: 700;
   }
-  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-weak); }
   .field { margin-bottom: 12px; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   button {
     font: inherit;
     cursor: pointer;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
   }
   .primary {
     width: 100%;
-    padding: 14px;
-    background: var(--accent);
+    padding: 16px;
+    background: linear-gradient(180deg, var(--accent), var(--accent-dark));
     color: #fff;
-    font-weight: 700;
-    font-size: 1rem;
+    font-weight: 900; font-size: 1.15rem; letter-spacing: .1em;
+    box-shadow: 0 5px 0 var(--accent-dark), 0 8px 16px rgba(0,0,0,.25);
+    text-shadow: 1px 1px 0 rgba(0,0,0,.3);
   }
-  .primary:active { transform: scale(.99); }
-  .error { color: var(--danger); font-size: .85rem; min-height: 1.2em; margin: 0 0 8px; }
+  .primary:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--accent-dark); }
+  .error { color: var(--danger); font-size: .85rem; font-weight: 700; min-height: 1.2em; margin: 0 0 8px; }
   .empty { color: var(--muted); text-align: center; padding: 12px 0; margin: 0; }
   ul { list-style: none; margin: 0; padding: 0; }
 
@@ -114,58 +142,69 @@
   .pb li {
     display: flex; align-items: center; gap: 12px;
     padding: 10px 0;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 2px dashed var(--line);
   }
   .pb li:last-child { border-bottom: none; }
   .rank {
-    flex: 0 0 32px; height: 32px;
+    flex: 0 0 36px; height: 36px;
     display: grid; place-items: center;
     border-radius: 50%;
-    background: var(--accent-weak); color: var(--accent);
-    font-weight: 700; font-size: .9rem;
+    background: var(--accent); color: #fff;
+    font-weight: 900; font-size: 1rem; font-style: italic;
   }
-  .pb li:first-child .rank { background: var(--gold); color: #fff; }
+  .pb li:first-child .rank {
+    background: radial-gradient(circle at 35% 30%, #fff3b0, var(--gold) 60%, #c78600);
+    color: #5a3a00;
+    box-shadow: 0 0 0 3px #fff3b0, 0 0 14px var(--gold);
+  }
   .who { flex: 1; min-width: 0; }
-  .who .name { font-weight: 700; overflow-wrap: anywhere; }
+  .who .name { font-weight: 900; overflow-wrap: anywhere; }
   .who .sub { font-size: .8rem; color: var(--muted); }
-  .time { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.25rem; }
-  .time small { font-size: .75rem; font-weight: 600; color: var(--muted); margin-left: 1px; }
+  .time {
+    font-variant-numeric: tabular-nums; font-weight: 900; font-style: italic;
+    font-size: 1.5rem; color: var(--accent);
+  }
+  .time small { font-size: .75rem; font-weight: 700; color: var(--muted); margin-left: 2px; }
+  .pb li:first-child .time { font-size: 1.75rem; }
 
   /* 一覧 */
   .toolbar { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
   .toolbar input { flex: 1 1 160px; padding: 10px; }
-  .seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-  .seg button { background: transparent; color: var(--muted); padding: 8px 12px; border-radius: 0; font-size: .85rem; }
+  .seg { display: flex; border: 2px solid var(--accent); border-radius: 12px; overflow: hidden; }
+  .seg button { background: transparent; color: var(--accent); padding: 8px 12px; border-radius: 0; font-size: .85rem; font-weight: 700; }
   .seg button.on { background: var(--accent); color: #fff; }
   .seg.wide { margin-bottom: 12px; }
-  .seg.wide button { flex: 1; padding: 10px; font-size: .95rem; font-weight: 700; }
+  .seg.wide button { flex: 1; padding: 12px; font-size: 1.05rem; font-weight: 900; font-style: italic; }
   h3 {
-    font-size: .9rem; margin: 14px 0 2px; padding-bottom: 4px;
-    color: var(--accent); border-bottom: 2px solid var(--accent-weak);
+    display: inline-block;
+    font-size: .9rem; font-weight: 900; font-style: italic;
+    margin: 16px 0 4px; padding: 2px 12px;
+    background: var(--accent); color: #fff;
+    border-radius: 999px;
   }
   h3:first-child { margin-top: 0; }
   .tag {
-    display: inline-block; font-size: .7rem; font-weight: 700;
-    background: var(--accent-weak); color: var(--accent);
+    display: inline-block; font-size: .7rem; font-weight: 900;
+    background: var(--accent); color: #fff;
     padding: 0 6px; border-radius: 6px; margin-right: 6px;
   }
   .list li {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 0;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 2px dashed var(--line);
   }
   .list li:last-child { border-bottom: none; }
   .badge {
-    display: inline-block; font-size: .7rem; font-weight: 700;
-    background: var(--gold); color: #fff;
+    display: inline-block; font-size: .7rem; font-weight: 900;
+    background: var(--gold); color: #5a3a00;
     padding: 1px 6px; border-radius: 6px; margin-left: 6px; vertical-align: 2px;
   }
   .del {
     background: transparent; color: var(--muted);
     width: 36px; height: 36px; font-size: 1.1rem;
   }
-  .del:hover, .del:focus { color: var(--danger); background: var(--bg); }
-  footer { text-align: center; color: var(--muted); font-size: .75rem; padding: 0 16px 24px; }
+  .del:hover, .del:focus { color: #fff; background: var(--danger); }
+  footer { text-align: center; color: rgba(255,255,255,.8); font-size: .75rem; font-weight: 700; padding: 0 16px 28px; }
 </style>
 </head>
 <body>
@@ -174,7 +213,7 @@
   <p>100m／200m ・ 記録はこの端末のブラウザに保存されます</p>
   <div class="themes" role="group" aria-label="テーマカラー">
     <span>テーマ</span>
-    <button type="button" class="swatch" data-accent="orange" style="--c:#d9480f" aria-label="オレンジ"></button>
+    <button type="button" class="swatch" data-accent="red" style="--c:#e60012" aria-label="レッド"></button>
     <button type="button" class="swatch" data-accent="blue" style="--c:#1c7ed6" aria-label="ブルー"></button>
     <button type="button" class="swatch" data-accent="green" style="--c:#2b8a3e" aria-label="グリーン"></button>
     <button type="button" class="swatch" data-accent="purple" style="--c:#7048e8" aria-label="パープル"></button>
@@ -415,8 +454,10 @@
       applyTheme(s.dataset.accent);
       try { localStorage.setItem(THEME_KEY, s.dataset.accent); } catch (e) {}
     }));
-  let savedTheme = 'orange';
-  try { savedTheme = localStorage.getItem(THEME_KEY) || 'orange'; } catch (e) {}
+  let savedTheme = 'red';
+  try { savedTheme = localStorage.getItem(THEME_KEY) || 'red'; } catch (e) {}
+  // 廃止した色（オレンジなど）が保存されていたらレッドに戻す
+  if (!document.querySelector(`.swatch[data-accent="${savedTheme}"]`)) savedTheme = 'red';
   applyTheme(savedTheme);
 
   render();
