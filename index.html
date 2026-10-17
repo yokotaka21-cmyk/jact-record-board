@@ -71,8 +71,15 @@
     letter-spacing: .02em; line-height: 1.15;
     text-shadow: 3px 3px 0 rgba(0,0,0,.25);
   }
+  .logo {
+    width: fit-content;
+    margin-top: 6px; padding: 1px 8px;
+    font-size: .75rem; font-weight: 900; font-style: italic;
+    letter-spacing: .35em; text-indent: .35em; /* 字間を左右均等に */
+    border: 2px solid #fff; border-radius: 4px;
+  }
   header p {
-    display: inline-block;
+    display: block; width: fit-content;
     margin: 10px 0 0; padding: 3px 10px;
     font-size: .8rem; font-weight: 700;
     background: rgba(0,0,0,.22); border-radius: 10px;
@@ -210,6 +217,7 @@
 <body>
 <header>
   <h1>🏃 陸上 記録ボード</h1>
+  <div class="logo" aria-label="JACT">JACT</div>
   <p>100m／200m ・ 記録はこの端末のブラウザに保存されます</p>
   <div class="themes" role="group" aria-label="テーマカラー">
     <span>テーマ</span>
