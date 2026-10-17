@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>100m 記録ボード</title>
+<title>陸上 記録ボード</title>
 <style>
   :root {
     --bg: #f4f5f7;
@@ -137,6 +137,18 @@
   .seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
   .seg button { background: transparent; color: var(--muted); padding: 8px 12px; border-radius: 0; font-size: .85rem; }
   .seg button.on { background: var(--accent); color: #fff; }
+  .seg.wide { margin-bottom: 12px; }
+  .seg.wide button { flex: 1; padding: 10px; font-size: .95rem; font-weight: 700; }
+  h3 {
+    font-size: .9rem; margin: 14px 0 2px; padding-bottom: 4px;
+    color: var(--accent); border-bottom: 2px solid var(--accent-weak);
+  }
+  h3:first-child { margin-top: 0; }
+  .tag {
+    display: inline-block; font-size: .7rem; font-weight: 700;
+    background: var(--accent-weak); color: var(--accent);
+    padding: 0 6px; border-radius: 6px; margin-right: 6px;
+  }
   .list li {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 0;
@@ -158,8 +170,8 @@
 </head>
 <body>
 <header>
-  <h1>🏃 100m 記録ボード</h1>
-  <p>記録はこの端末のブラウザに保存されます</p>
+  <h1>🏃 陸上 記録ボード</h1>
+  <p>100m／200m ・ 記録はこの端末のブラウザに保存されます</p>
   <div class="themes" role="group" aria-label="テーマカラー">
     <span>テーマ</span>
     <button type="button" class="swatch" data-accent="orange" style="--c:#d9480f" aria-label="オレンジ"></button>
@@ -175,6 +187,11 @@
   <section>
     <h2>記録を追加</h2>
     <form id="form" novalidate>
+      <label>種目</label>
+      <div class="seg wide" id="eventSeg" role="group" aria-label="種目">
+        <button type="button" data-event="100m" class="on">100m</button>
+        <button type="button" data-event="200m">200m</button>
+      </div>
       <div class="field">
         <label for="name">選手名</label>
         <input id="name" list="names" autocomplete="off" placeholder="例：山田 太郎" required>
@@ -196,15 +213,20 @@
   </section>
 
   <section>
-    <h2>選手ごとの自己ベスト</h2>
-    <ul class="pb" id="pb"></ul>
+    <h2>種目別・選手ごとの自己ベスト</h2>
+    <div id="pb"></div>
   </section>
 
   <section>
     <h2>記録一覧 <span id="count" style="color:var(--muted);font-weight:400;font-size:.85rem"></span></h2>
     <div class="toolbar">
       <input id="filter" type="search" placeholder="選手名で絞り込み">
-      <div class="seg" role="group" aria-label="並び順">
+      <div class="seg" id="filterSeg" role="group" aria-label="種目で絞り込み">
+        <button type="button" data-event="" class="on">すべて</button>
+        <button type="button" data-event="100m">100m</button>
+        <button type="button" data-event="200m">200m</button>
+      </div>
+      <div class="seg" id="sortSeg" role="group" aria-label="並び順">
         <button type="button" data-sort="date" class="on">新しい順</button>
         <button type="button" data-sort="time">速い順</button>
       </div>
@@ -217,8 +239,15 @@
 
 <script>
   const KEY = 'track100m.records';
+  // 種目ごとの入力範囲と例
+  const EVENTS = {
+    '100m': { min: 5, max: 60, example: '11.42' },
+    '200m': { min: 10, max: 120, example: '23.10' },
+  };
   let records = load();
   let sortBy = 'date';
+  let formEvent = '100m';
+  let filterEvent = '';
 
   const $ = (id) => document.getElementById(id);
   const form = $('form'), nameEl = $('name'), timeEl = $('time'), dateEl = $('date');
@@ -234,7 +263,8 @@
   function load() {
     try {
       const data = JSON.parse(localStorage.getItem(KEY));
-      return Array.isArray(data) ? data : [];
+      // 種目追加前の記録は 100m として扱う
+      return Array.isArray(data) ? data.map((r) => ({ event: '100m', ...r })) : [];
     } catch (e) {
       return [];
     }
@@ -261,10 +291,11 @@
     return `${t.toFixed(2)}<small>秒</small>`;
   }
 
-  // 選手ごとの自己ベスト（同タイムなら早い日付を優先）
-  function bests() {
+  // 種目ごと・選手ごとの自己ベスト（同タイムなら早い日付を優先）
+  function bests(event) {
     const map = new Map();
     for (const r of records) {
+      if (r.event !== event) continue;
       const cur = map.get(r.name);
       if (!cur || r.time < cur.time || (r.time === cur.time && r.date < cur.date)) map.set(r.name, r);
     }
@@ -272,30 +303,36 @@
   }
 
   function render() {
-    const pbList = bests();
-    const pbIds = new Set(pbList.map((r) => r.id));
+    const pbIds = new Set();
     const counts = {};
-    records.forEach((r) => (counts[r.name] = (counts[r.name] || 0) + 1));
+    records.forEach((r) => {
+      const k = r.event + '|' + r.name;
+      counts[k] = (counts[k] || 0) + 1;
+    });
 
-    // 自己ベスト
-    $('pb').innerHTML = pbList.length
-      ? pbList.map((r, i) => `
-        <li>
-          <span class="rank">${i + 1}</span>
-          <div class="who">
-            <div class="name">${esc(r.name)}</div>
-            <div class="sub">${fmtDate(r.date)} ・ 記録 ${counts[r.name]} 件</div>
-          </div>
-          <span class="time">${fmtTime(r.time)}</span>
-        </li>`).join('')
-      : '<p class="empty">まだ記録がありません</p>';
+    // 自己ベスト（種目ごと）
+    $('pb').innerHTML = Object.keys(EVENTS).map((ev) => {
+      const pbList = bests(ev);
+      pbList.forEach((r) => pbIds.add(r.id));
+      return `<h3>${ev}</h3>` + (pbList.length
+        ? '<ul class="pb">' + pbList.map((r, i) => `
+          <li>
+            <span class="rank">${i + 1}</span>
+            <div class="who">
+              <div class="name">${esc(r.name)}</div>
+              <div class="sub">${fmtDate(r.date)} ・ 記録 ${counts[ev + '|' + r.name]} 件</div>
+            </div>
+            <span class="time">${fmtTime(r.time)}</span>
+          </li>`).join('') + '</ul>'
+        : '<p class="empty">まだ記録がありません</p>');
+    }).join('');
 
-    // 一覧
+    // 一覧（「すべて」で速い順のときは種目ごとにまとめる）
     const q = $('filter').value.trim().toLowerCase();
     const rows = records
-      .filter((r) => !q || r.name.toLowerCase().includes(q))
+      .filter((r) => (!filterEvent || r.event === filterEvent) && (!q || r.name.toLowerCase().includes(q)))
       .sort(sortBy === 'time'
-        ? (a, b) => a.time - b.time || b.date.localeCompare(a.date)
+        ? (a, b) => a.event.localeCompare(b.event) || a.time - b.time || b.date.localeCompare(a.date)
         : (a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 
     $('count').textContent = `${rows.length} 件`;
@@ -304,15 +341,16 @@
         <li>
           <div class="who">
             <div class="name">${esc(r.name)}${pbIds.has(r.id) ? '<span class="badge">PB</span>' : ''}</div>
-            <div class="sub">${fmtDate(r.date)}</div>
+            <div class="sub"><span class="tag">${r.event}</span>${fmtDate(r.date)}</div>
           </div>
           <span class="time">${fmtTime(r.time)}</span>
           <button class="del" type="button" data-id="${r.id}" aria-label="削除">✕</button>
         </li>`).join('')
-      : `<p class="empty">${q ? '該当する記録がありません' : 'まだ記録がありません'}</p>`;
+      : `<p class="empty">${q || filterEvent ? '該当する記録がありません' : 'まだ記録がありません'}</p>`;
 
     // 選手名の入力候補
-    $('names').innerHTML = Object.keys(counts).map((n) => `<option value="${esc(n)}">`).join('');
+    const names = [...new Set(records.map((r) => r.name))];
+    $('names').innerHTML = names.map((n) => `<option value="${esc(n)}">`).join('');
   }
 
   form.addEventListener('submit', (e) => {
@@ -320,14 +358,16 @@
     const name = nameEl.value.trim().replace(/\s+/g, ' ');
     const time = Number(timeEl.value);
     const date = dateEl.value;
+    const { min, max } = EVENTS[formEvent];
     let msg = '';
     if (!name) msg = '選手名を入力してください';
-    else if (!timeEl.value || !isFinite(time) || time < 5 || time > 60) msg = '記録は 5〜60 秒の範囲で入力してください';
+    else if (!timeEl.value || !isFinite(time) || time < min || time > max) msg = `${formEvent} の記録は ${min}〜${max} 秒の範囲で入力してください`;
     else if (!date) msg = '日付を入力してください';
     $('error').textContent = msg;
     if (msg) return;
 
-    records.push({ id: Date.now(), name, time: Math.round(time * 100) / 100, date });
+    const id = Math.max(Date.now(), ...records.map((r) => r.id + 1));
+    records.push({ id, event: formEvent, name, time: Math.round(time * 100) / 100, date });
     save();
     render();
     timeEl.value = '';
@@ -338,18 +378,28 @@
     const btn = e.target.closest('.del');
     if (!btn) return;
     const r = records.find((x) => x.id === Number(btn.dataset.id));
-    if (!r || !confirm(`${r.name}（${r.time.toFixed(2)}秒 / ${fmtDate(r.date)}）を削除しますか？`)) return;
+    if (!r || !confirm(`${r.name}（${r.event} ${r.time.toFixed(2)}秒 / ${fmtDate(r.date)}）を削除しますか？`)) return;
     records = records.filter((x) => x !== r);
     save();
     render();
   });
 
-  document.querySelectorAll('.seg button').forEach((b) =>
-    b.addEventListener('click', () => {
-      sortBy = b.dataset.sort;
-      document.querySelectorAll('.seg button').forEach((x) => x.classList.toggle('on', x === b));
-      render();
-    }));
+  // セグメントボタン（押したものだけ .on にして onSelect を呼ぶ）
+  function segment(id, onSelect) {
+    const buttons = document.querySelectorAll(`#${id} button`);
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        buttons.forEach((x) => x.classList.toggle('on', x === b));
+        onSelect(b.dataset);
+      }));
+  }
+  segment('sortSeg', (d) => { sortBy = d.sort; render(); });
+  segment('filterSeg', (d) => { filterEvent = d.event; render(); });
+  segment('eventSeg', (d) => {
+    formEvent = d.event;
+    timeEl.placeholder = `例：${EVENTS[formEvent].example}`;
+    $('error').textContent = '';
+  });
 
   $('filter').addEventListener('input', render);
 
