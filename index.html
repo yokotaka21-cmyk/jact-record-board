@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>100m 記録ボード</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --text: #1d2330;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #d9480f;
+    --accent-weak: #fff1e8;
+    --gold: #b7791f;
+    --danger: #c92a2a;
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b;
+      --card: #1c2029;
+      --text: #e8eaef;
+      --muted: #9aa1ad;
+      --line: #2d3340;
+      --accent: #ff7a3d;
+      --accent-weak: #3a2418;
+      --gold: #f2c14e;
+      --danger: #ff6b6b;
+    }
+  }
+  /* テーマカラー（未指定時はオレンジ） */
+  :root[data-accent="blue"]   { --accent: #1c7ed6; --accent-weak: #e7f5ff; }
+  :root[data-accent="green"]  { --accent: #2b8a3e; --accent-weak: #ebfbee; }
+  :root[data-accent="purple"] { --accent: #7048e8; --accent-weak: #f3f0ff; }
+  :root[data-accent="pink"]   { --accent: #d6336c; --accent-weak: #fff0f6; }
+  :root[data-accent="navy"]   { --accent: #364fc7; --accent-weak: #edf2ff; }
+  @media (prefers-color-scheme: dark) {
+    :root[data-accent="blue"]   { --accent: #339af0; --accent-weak: #162a3d; }
+    :root[data-accent="green"]  { --accent: #40c057; --accent-weak: #16301d; }
+    :root[data-accent="purple"] { --accent: #9775fa; --accent-weak: #261f3d; }
+    :root[data-accent="pink"]   { --accent: #f06595; --accent-weak: #3a1a27; }
+    :root[data-accent="navy"]   { --accent: #5c7cfa; --accent-weak: #1b2240; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", sans-serif;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 18px 16px 16px;
+  }
+  header h1 { margin: 0; font-size: 1.35rem; letter-spacing: .02em; }
+  header p { margin: 2px 0 0; font-size: .85rem; opacity: .9; }
+  .themes { display: flex; gap: 10px; margin-top: 12px; align-items: center; }
+  .themes span { font-size: .8rem; opacity: .9; margin-right: 2px; }
+  .swatch {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--c);
+    border: 2px solid rgba(255,255,255,.85);
+    padding: 0;
+  }
+  .swatch[aria-pressed="true"] { box-shadow: 0 0 0 3px #fff; transform: scale(1.1); }
+  .swatch[aria-pressed="true"]::after { content: "✓"; color: #fff; font-weight: 700; font-size: .9rem; }
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+  section {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  h2 { font-size: 1.05rem; margin: 0 0 12px; }
+  label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
+  input {
+    width: 100%;
+    font-size: 16px; /* iOSのズーム防止 */
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text);
+  }
+  input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .field { margin-bottom: 12px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  button {
+    font: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+  }
+  .primary {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .primary:active { transform: scale(.99); }
+  .error { color: var(--danger); font-size: .85rem; min-height: 1.2em; margin: 0 0 8px; }
+  .empty { color: var(--muted); text-align: center; padding: 12px 0; margin: 0; }
+  ul { list-style: none; margin: 0; padding: 0; }
+
+  /* 自己ベスト */
+  .pb li {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .pb li:last-child { border-bottom: none; }
+  .rank {
+    flex: 0 0 32px; height: 32px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: var(--accent-weak); color: var(--accent);
+    font-weight: 700; font-size: .9rem;
+  }
+  .pb li:first-child .rank { background: var(--gold); color: #fff; }
+  .who { flex: 1; min-width: 0; }
+  .who .name { font-weight: 700; overflow-wrap: anywhere; }
+  .who .sub { font-size: .8rem; color: var(--muted); }
+  .time { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 1.25rem; }
+  .time small { font-size: .75rem; font-weight: 600; color: var(--muted); margin-left: 1px; }
+
+  /* 一覧 */
+  .toolbar { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .toolbar input { flex: 1 1 160px; padding: 10px; }
+  .seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .seg button { background: transparent; color: var(--muted); padding: 8px 12px; border-radius: 0; font-size: .85rem; }
+  .seg button.on { background: var(--accent); color: #fff; }
+  .list li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .list li:last-child { border-bottom: none; }
+  .badge {
+    display: inline-block; font-size: .7rem; font-weight: 700;
+    background: var(--gold); color: #fff;
+    padding: 1px 6px; border-radius: 6px; margin-left: 6px; vertical-align: 2px;
+  }
+  .del {
+    background: transparent; color: var(--muted);
+    width: 36px; height: 36px; font-size: 1.1rem;
+  }
+  .del:hover, .del:focus { color: var(--danger); background: var(--bg); }
+  footer { text-align: center; color: var(--muted); font-size: .75rem; padding: 0 16px 24px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🏃 100m 記録ボード</h1>
+  <p>記録はこの端末のブラウザに保存されます</p>
+  <div class="themes" role="group" aria-label="テーマカラー">
+    <span>テーマ</span>
+    <button type="button" class="swatch" data-accent="orange" style="--c:#d9480f" aria-label="オレンジ"></button>
+    <button type="button" class="swatch" data-accent="blue" style="--c:#1c7ed6" aria-label="ブルー"></button>
+    <button type="button" class="swatch" data-accent="green" style="--c:#2b8a3e" aria-label="グリーン"></button>
+    <button type="button" class="swatch" data-accent="purple" style="--c:#7048e8" aria-label="パープル"></button>
+    <button type="button" class="swatch" data-accent="pink" style="--c:#d6336c" aria-label="ピンク"></button>
+    <button type="button" class="swatch" data-accent="navy" style="--c:#364fc7" aria-label="ネイビー"></button>
+  </div>
+</header>
+
+<main>
+  <section>
+    <h2>記録を追加</h2>
+    <form id="form" novalidate>
+      <div class="field">
+        <label for="name">選手名</label>
+        <input id="name" list="names" autocomplete="off" placeholder="例：山田 太郎" required>
+        <datalist id="names"></datalist>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="time">記録（秒）</label>
+          <input id="time" type="number" inputmode="decimal" step="0.01" min="5" max="60" placeholder="例：11.42" required>
+        </div>
+        <div class="field">
+          <label for="date">日付</label>
+          <input id="date" type="date" required>
+        </div>
+      </div>
+      <p class="error" id="error" role="alert"></p>
+      <button class="primary" type="submit">追加する</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>選手ごとの自己ベスト</h2>
+    <ul class="pb" id="pb"></ul>
+  </section>
+
+  <section>
+    <h2>記録一覧 <span id="count" style="color:var(--muted);font-weight:400;font-size:.85rem"></span></h2>
+    <div class="toolbar">
+      <input id="filter" type="search" placeholder="選手名で絞り込み">
+      <div class="seg" role="group" aria-label="並び順">
+        <button type="button" data-sort="date" class="on">新しい順</button>
+        <button type="button" data-sort="time">速い順</button>
+      </div>
+    </div>
+    <ul class="list" id="list"></ul>
+  </section>
+</main>
+
+<footer>データを消すとブラウザから完全に削除されます</footer>
+
+<script>
+  const KEY = 'track100m.records';
+  let records = load();
+  let sortBy = 'date';
+
+  const $ = (id) => document.getElementById(id);
+  const form = $('form'), nameEl = $('name'), timeEl = $('time'), dateEl = $('date');
+
+  dateEl.value = today();
+
+  function today() {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 10);
+  }
+
+  function load() {
+    try {
+      const data = JSON.parse(localStorage.getItem(KEY));
+      return Array.isArray(data) ? data : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(records));
+    } catch (e) {
+      alert('保存できませんでした（プライベートモードなどの可能性があります）');
+    }
+  }
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function fmtDate(iso) {
+    const [y, m, d] = iso.split('-');
+    return `${y}/${Number(m)}/${Number(d)}`;
+  }
+
+  function fmtTime(t) {
+    return `${t.toFixed(2)}<small>秒</small>`;
+  }
+
+  // 選手ごとの自己ベスト（同タイムなら早い日付を優先）
+  function bests() {
+    const map = new Map();
+    for (const r of records) {
+      const cur = map.get(r.name);
+      if (!cur || r.time < cur.time || (r.time === cur.time && r.date < cur.date)) map.set(r.name, r);
+    }
+    return [...map.values()].sort((a, b) => a.time - b.time);
+  }
+
+  function render() {
+    const pbList = bests();
+    const pbIds = new Set(pbList.map((r) => r.id));
+    const counts = {};
+    records.forEach((r) => (counts[r.name] = (counts[r.name] || 0) + 1));
+
+    // 自己ベスト
+    $('pb').innerHTML = pbList.length
+      ? pbList.map((r, i) => `
+        <li>
+          <span class="rank">${i + 1}</span>
+          <div class="who">
+            <div class="name">${esc(r.name)}</div>
+            <div class="sub">${fmtDate(r.date)} ・ 記録 ${counts[r.name]} 件</div>
+          </div>
+          <span class="time">${fmtTime(r.time)}</span>
+        </li>`).join('')
+      : '<p class="empty">まだ記録がありません</p>';
+
+    // 一覧
+    const q = $('filter').value.trim().toLowerCase();
+    const rows = records
+      .filter((r) => !q || r.name.toLowerCase().includes(q))
+      .sort(sortBy === 'time'
+        ? (a, b) => a.time - b.time || b.date.localeCompare(a.date)
+        : (a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+
+    $('count').textContent = `${rows.length} 件`;
+    $('list').innerHTML = rows.length
+      ? rows.map((r) => `
+        <li>
+          <div class="who">
+            <div class="name">${esc(r.name)}${pbIds.has(r.id) ? '<span class="badge">PB</span>' : ''}</div>
+            <div class="sub">${fmtDate(r.date)}</div>
+          </div>
+          <span class="time">${fmtTime(r.time)}</span>
+          <button class="del" type="button" data-id="${r.id}" aria-label="削除">✕</button>
+        </li>`).join('')
+      : `<p class="empty">${q ? '該当する記録がありません' : 'まだ記録がありません'}</p>`;
+
+    // 選手名の入力候補
+    $('names').innerHTML = Object.keys(counts).map((n) => `<option value="${esc(n)}">`).join('');
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = nameEl.value.trim().replace(/\s+/g, ' ');
+    const time = Number(timeEl.value);
+    const date = dateEl.value;
+    let msg = '';
+    if (!name) msg = '選手名を入力してください';
+    else if (!timeEl.value || !isFinite(time) || time < 5 || time > 60) msg = '記録は 5〜60 秒の範囲で入力してください';
+    else if (!date) msg = '日付を入力してください';
+    $('error').textContent = msg;
+    if (msg) return;
+
+    records.push({ id: Date.now(), name, time: Math.round(time * 100) / 100, date });
+    save();
+    render();
+    timeEl.value = '';
+    timeEl.focus();
+  });
+
+  $('list').addEventListener('click', (e) => {
+    const btn = e.target.closest('.del');
+    if (!btn) return;
+    const r = records.find((x) => x.id === Number(btn.dataset.id));
+    if (!r || !confirm(`${r.name}（${r.time.toFixed(2)}秒 / ${fmtDate(r.date)}）を削除しますか？`)) return;
+    records = records.filter((x) => x !== r);
+    save();
+    render();
+  });
+
+  document.querySelectorAll('.seg button').forEach((b) =>
+    b.addEventListener('click', () => {
+      sortBy = b.dataset.sort;
+      document.querySelectorAll('.seg button').forEach((x) => x.classList.toggle('on', x === b));
+      render();
+    }));
+
+  $('filter').addEventListener('input', render);
+
+  // テーマカラー
+  const THEME_KEY = 'track100m.theme';
+  function applyTheme(name) {
+    document.documentElement.dataset.accent = name;
+    document.querySelectorAll('.swatch').forEach((s) =>
+      s.setAttribute('aria-pressed', String(s.dataset.accent === name)));
+  }
+  document.querySelectorAll('.swatch').forEach((s) =>
+    s.addEventListener('click', () => {
+      applyTheme(s.dataset.accent);
+      try { localStorage.setItem(THEME_KEY, s.dataset.accent); } catch (e) {}
+    }));
+  let savedTheme = 'orange';
+  try { savedTheme = localStorage.getItem(THEME_KEY) || 'orange'; } catch (e) {}
+  applyTheme(savedTheme);
+
+  render();
+</script>
+</body>
+</html>
